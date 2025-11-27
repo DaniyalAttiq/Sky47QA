@@ -3,12 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "clean": "if exist allure-results rmdir /s /q allure-results && if exist allure-report rmdir /s /q allure-report && if exist playwright-report rmdir /s /q playwright-report && if exist test-results rmdir /s /q test-results && if exist shareable-report.html rmdir /s /q shareable-report.html && if exist test-report.pdf del test-report.pdf",
+    "test": "npm run clean && npx playwright test",
+    "report": "allure generate allure-results --clean --single-file --output shareable-report.html && echo Report generated: shareable-report.html/index.html",
+    "pdf": "node generate-pdf.js",
+    "test:report": "npm run test && npm run report",
+    "test:pdf": "npm run test && npm run report && npm run pdf",
+    "report:pdf": "npm run report && npm run pdf"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.55.1",
-    "@types/node": "^24.6.2"
+    "@types/node": "^24.6.2",
+    "allure-commandline": "^2.34.1",
+    "allure-playwright": "^3.4.1",
+    "puppeteer": "^24.25.0"
   }
 }

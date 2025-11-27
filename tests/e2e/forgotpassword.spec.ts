@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { ForgotPasswordPage } from '../pages/forgotpassword';
 import { SignupPage } from '../pages/signup';
 import { LoginPage } from '../pages/login';
+import { captureToastScreenshot } from '../utils/toastWatcher'; // 👈 Add this import
 
 test.describe('Forgot Password Page', () => {
   let forgotPasswordPage: ForgotPasswordPage;
@@ -14,25 +15,32 @@ test.describe('Forgot Password Page', () => {
     loginPage = new LoginPage(page);
   });
 
-  test('S4-TC-FP-1: should send reset link for valid email', async () => {
+  test('S4-TC-FP-1: should send reset link for valid email', async ({ page }, testInfo) => {
     await forgotPasswordPage.goto();
     await forgotPasswordPage.submitEmail('TestQA@yopmail.com');
     await forgotPasswordPage.expectSuccessToast();
+
+    // 🖼️ Capture toast screenshot
+    await captureToastScreenshot(page, testInfo);
   });
 
-  test('S4-TC-FP-2: should show inline error for empty email', async () => {
+  test('S4-TC-FP-2: should show inline error for empty email', async ({ page }, testInfo) => {
     await forgotPasswordPage.goto();
     await forgotPasswordPage.submitEmail('');
     await forgotPasswordPage.expectEmailRequiredError();
+
+    // 🖼️ Capture screenshot if any toast/error shows up
+    await captureToastScreenshot(page, testInfo);
   });
 
-  test('S4-TC-FP-3: should navigate back to login page', async ({ page }) => {
+  test('S4-TC-FP-3: should navigate back to login page', async ({ page }, testInfo) => {
     await forgotPasswordPage.goto();
     await forgotPasswordPage.goBackToLogin();
     await page.waitForURL('**/login');
+    await captureToastScreenshot(page, testInfo);
   });
 
-  test('Complete forgot password flow', async ({ page }) => {
+  test('Complete forgot password flow', async ({ page }, testInfo) => {
     // Extend test timeout (2 minutes total)
     test.setTimeout(120000);
 
@@ -60,6 +68,7 @@ test.describe('Forgot Password Page', () => {
 
     await signupPage.signup('Daniyal', uniqueEmail, oldPassword);
     await signupPage.expectSuccessToast();
+    await captureToastScreenshot(page, testInfo); // 🖼️ capture toast screenshot
     await page.waitForURL('**/verification');
 
     // ---------- Step 2: Verify Account via Yopmail ----------
@@ -93,6 +102,7 @@ test.describe('Forgot Password Page', () => {
     await forgotPasswordPage.goto();
     await forgotPasswordPage.submitEmail(uniqueEmail);
     await forgotPasswordPage.expectSuccessToast();
+    await captureToastScreenshot(page, testInfo); // 🖼️ capture toast screenshot
 
     // ---------- Step 4: Get Reset Link from Yopmail ----------
     for (let i = 0; i < 3; i++) {
@@ -122,14 +132,17 @@ test.describe('Forgot Password Page', () => {
     await page.fill('input[placeholder="Confirm Password"]', newPassword);
     await page.click('button:has-text("Reset Password")', { timeout: 5000 });
     await page.getByText(/Password reset successfully!/i).waitFor({ state: 'visible', timeout: 10000 });
+    await captureToastScreenshot(page, testInfo); // 🖼️ capture toast screenshot
 
     // ---------- Step 6: Try Login with Old Password (should fail) ----------
     await loginPage.goto();
     await loginPage.login(uniqueEmail, oldPassword);
     await loginPage.expectInvalidCredentialsToast();
+    await captureToastScreenshot(page, testInfo); // 🖼️ capture toast screenshot
 
     // ---------- Step 7: Try Login with New Password (should succeed) ----------
     await loginPage.login(uniqueEmail, newPassword);
     await loginPage.expectSuccessToast();
+    await captureToastScreenshot(page, testInfo); // 🖼️ capture toast screenshot
   });
 });

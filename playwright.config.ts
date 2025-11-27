@@ -6,42 +6,28 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+
+  // ✅ Reporters: HTML + Allure
+  reporter: [
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
+    ['allure-playwright', { outputFolder: 'allure-results' }],
+  ],
 
   use: {
-    trace: 'on-first-retry',
     baseURL: 'https://r08sgs0k08gw0sgccscoo4o8.49.13.228.64.sslip.io',
-    headless: false, // Helpful for setup step
+    headless: false,
+    trace: 'on-first-retry',
+
+    // ✅ Video for every test
+    video: 'on', // <---- this ensures every test gets a video
+    screenshot: 'on', // ✅ Capture screenshots for every test
   },
 
+  // ✅ Chromium only
   projects: [
-    // ✅ 1️⃣ Google Auth Setup project
-    {
-      name: 'setup',
-      testMatch: 'tests/setup/google-auth.setup.ts', // Path to your setup test
-    },
-
-    // ✅ 2️⃣ Regular browser projects that reuse the saved session
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'tests/.auth/google-auth.json', // Auth state file
-      },
-    },
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: 'tests/.auth/google-auth.json',
-      },
-    },
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-        storageState: 'tests/.auth/google-auth.json',
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 });
